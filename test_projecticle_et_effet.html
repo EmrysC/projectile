@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Jeu Emrys</title>
+    </head>
+    <body style=" margin :  0px;">
+        
+    
+        
+        
+        
+        
+        
+        
+        
+        <script src="phaser.js"></script>
+        
+
+
+        
+       <script>
+           
+    
+    contact_projectile = function(body, bodyB, shapeA, shapeB, equation) {
+        
+        console.log("contact",bodyB,bodyB.parent.sprite.projectile);
+        
+        if(  (body.sprite.projectile != null) && (bodyB.parent.sprite.projectile != null)){
+            
+            console.log(body.pro);
+            
+            body.pro.destroy();
+            
+           
+            
+        }
+        
+    }
+           
+
+        
+        
+class Projectile {
+    
+    constructor(image,forme,x,y,vitesse,angle,friendly_fire,physique,effet,degat,game,taille_x,taille_y,width,height) {
+      this.image = image;
+      this.forme = forme;
+      this.x = x;
+      this.y = y;
+      this.vitesse = vitesse;
+      this.angle = angle;
+      this.friendly_fire = friendly_fire;       //si friendly_fire et egale a 0 ou 1 on ne touche pas 0 ou 1, sinon on touche les 2
+      this.physique = physique;
+      this.effet = effet;
+      this.effet1 = new Array();
+      this.degat = degat;
+      this.game = game;
+      this.taille_x = taille_x;
+      this.taille_y = taille_y;
+        
+      this.width = width;
+      this.height = height;
+      
+      this.construire_projectile();
+      
+
+  }
+            
+construire_projectile(){
+    
+    this.projecticle = this.game.add.sprite(this.x,this.y,this.image);
+    
+    this.game.physics.p2.enable(this.projecticle, true); 
+    this.projecticle.body.clearShapes();
+    
+    this.projecticle.body.loadPolygon('physicsData1',this.forme);
+
+    this.projecticle.body.angle = this.angle;
+    
+    this.projecticle.body.pro = this;
+    
+    this.projecticle.scale.setTo(1/(this.projecticle.texture.height/this.height),1/(this.projecticle.texture.width/this.width));
+    
+    if(this.physique){
+        this.projecticle.body.mass = 1;
+    }else{
+        this.projecticle.body.mass = 0.0001;
+    }
+    
+
+    this.projecticle.body.velocity.x = Math.cos(this.angle * (Math.PI / 180))*this.vitesse;
+    this.projecticle.body.velocity.y = Math.sin(this.angle * (Math.PI / 180))*this.vitesse;
+    this.projecticle.body.damping = 0;
+    
+    
+    if(this.friendly_fire != null){
+        if(this.friendly_fire == 0 ){
+            this.projecticle.body.setCollisionGroup(projecticle0);
+            this.projecticle.body.collides([projecticle1]);
+            
+            this.projecticle.projectile = 0;
+            
+        }else{
+            this.projecticle.body.setCollisionGroup(projecticle1);
+            this.projecticle.body.collides([projecticle0]);
+            
+            this.projecticle.projectile = 1;
+        }
+    }else{
+        
+         this.projecticle.body.collides([projecticle1,projecticle1]);
+        this.projecticle.projectile = 1;
+        
+    }
+    
+    
+    this.projecticle.body.onBeginContact.add(contact_projectile, this);
+    
+    if(this.effet.length > 0){
+        
+        var aa = this;
+        
+        this.effet.forEach(function(element) {
+            
+           aa.effet1.push(
+               new Effet(
+                element[0],
+                element[1],
+                element[2],
+                element[3],
+                element[4],
+                element[5],
+                element[6],
+                aa)
+               
+            );
+       });  
+    }
+      
+      
+    
+    
+}   
+    
+
+           
+destroy(){
+    
+
+    
+    
+     this.effet1.forEach(function(element) {        //apelle la spretion des effets  & fait les elements qui se declechent a la mort
+         element.destroy();
+     });
+    
+    this.projecticle.body.sprite.destroy();
+    
+    this.projecticle.destroy();
+    
+}
+        
+
+    
+};
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+class Effet{
+            
+    constructor(contact,mort,temps,projectile,geler,bruler,suicide,parent) {
+        this.concat = contact;
+        this.mort = mort;
+        this.temps = temps;
+        
+        this.projectile = projectile;
+                  
+        this.geler = geler;
+        this.bruler = bruler;
+                  
+        this.suicide = suicide;
+        
+        this.parent = parent;
+        
+        this.interval = null;
+        
+        
+        
+
+console.log("ici",this.temps,this.suicide);
+        
+        if(this.temps != null && this.projectile != null){                       //gestion des projectiles
+            
+            this.interval = setInterval(this.function_temps_projectile,this.temps,this);
+            
+        }else if(this.temps != null && this.suicide){                       //gestion de la mort
+            
+            this.interval = (setInterval(this.function_destruction,this.temps,this));
+           
+
+           
+            
+        }
+    }
+    
+
+    
+    
+        function_temps_projectile(effet){
+            
+            
+            if(effet.parent.x && effet.parent.y ){
+                
+                var g = new Projectile(
+                effet.projectile[0],
+                effet.projectile[1],
+                effet.projectile[2]+effet.parent.projecticle.body.x,
+                effet.projectile[3]+effet.parent.projecticle.body.y,
+                effet.projectile[4],
+                effet.projectile[5],
+                effet.projectile[6],
+                effet.projectile[7],
+                effet.projectile[8],
+                effet.projectile[9],
+                effet.projectile[10],
+                effet.projectile[11],
+                effet.projectile[12]);
+
+                
+            }
+            
+
+        }
+    
+        function_destruction(par){
+             par.parent.destroy();
+        }
+    
+        destroy(){
+            
+            
+             if(this.parent.x && this.parent.y && this.projectile != null){
+                 
+                 
+                 
+                 var g = new Projectile(
+                this.projectile[0],
+                this.projectile[1],
+                this.projectile[2]+this.parent.projecticle.body.x,
+                this.projectile[3]+this.parent.projecticle.body.y,
+                this.projectile[4],
+                this.projectile[5],
+                this.projectile[6],
+                this.projectile[7],
+                this.projectile[8],
+                this.projectile[9],
+                this.projectile[10],
+                this.projectile[11],
+                this.projectile[12]);
+
+                
+            }
+                 
+            
+             
+            
+            clearInterval(this.interval);
+            
+        
+        }
+            
+        };
+        
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+        
+        
+        game = new Phaser.Game(800, 800, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update });
+    
+        
+        function preload() {
+            
+             this.game.load.image('projectile', 'projectile.png');
+            this.game.load.physics('physicsData1', 'shape1.json');
+            
+        }
+        function create() {
+            
+            
+            
+            
+            this.game.physics.startSystem(Phaser.Physics.P2JS);
+            this.game.physics.p2.setImpactEvents(true);
+            this.game.physics.p2.restitution = 0.1;
+            this.game.stage.backgroundColor = '#697e96';
+            
+            projecticle0 = this.game.physics.p2.createCollisionGroup(); //creation groupe de collision pour les projectile
+            projecticle1 = this.game.physics.p2.createCollisionGroup();
+       
+
+            var a = new Projectile('projectile','projectile1',400,400,60,0,0,true,[],30,this.game,20,10);
+            var b = new Projectile('projectile','projectile1',400,400,60,45,0,true,[],30,this.game,20,10);
+            var c = new Projectile('projectile','projectile1',400,400,60,90,0,true,[],30,this.game,20,10);
+            var d = new Projectile('projectile','projectile1',400,400,60,135,0,true,[],30,this.game,20,10);
+            var e = new Projectile('projectile','projectile1',400,400,60,180,0,true,[],30,this.game,20,10);
+            var f = new Projectile('projectile','projectile1',400,400,60,225,0,true,[],30,this.game,20,10);
+            var g = new Projectile('projectile','projectile1',400,400,60,270,0,true,[],30,this.game,20,10);
+            var h = new Projectile('projectile','projectile1',400,400,60,315,0,true,[],30,this.game,20,10);
+            
+            
+            
+            var i = new Projectile('projectile','projectile1',500,400,0,315,1,true,[],30,this.game,20,10);
+            
+            
+            
+            var j = new Projectile('projectile','projectile1',450,400,0,315,0,true,[],30,this.game,20,10);
+            
+            
+            var k = new Projectile('projectile','projectile1',450,500,40,180,1,true,
+                                   
+                [
+                    [false,false,1000,['projectile','projectile1',0,0,340,315,1,true,[],30,this.game,20,10],0,0,null],
+                    [false,false,1000,['projectile','projectile1',0,0,340,95,1,true,[],30,this.game,20,10],0,0,null],
+                    [false,false,1000,['projectile','projectile1',0,0,340,185,1,true,[],30,this.game,20,10],0,0,null],
+                
+                ]
+                                   
+                ,30,this.game,20,10);
+            
+            
+            
+            //   constructor(contact,mort,temps,projectile,geler,bruler,suicide,parent) effet
+            // constructor(image,forme,x,y,vitesse,angle,friendly_fire,physique,effet,degat,game,taille_x,taille_y,width,height) projectile
+            
+                var l = new Projectile('projectile','projectile1',100,100,40,0,0,true,
+                                   
+                [
+                [false,false,5000,null,0,0,true],
+                [false,true,null,['projectile','projectile1',0,0,340,0,0,true,[],30,this.game,20,10],0,0,true],
+                [false,true,null,['projectile','projectile1',0,0,340,90,0,true,[],30,this.game,20,10],0,0,true],
+                [false,true,null,['projectile','projectile1',0,0,340,180,0,true,[],30,this.game,20,10],0,0,true],
+                [false,true,null,['projectile','projectile1',0,0,340,270,0,true,[],30,this.game,20,10],0,0,true],
+
+                
+                ]
+                                   
+                ,30,this.game,20,10);
+            
+
+            
+            
+        }
+        function update() {
+            
+        
+            
+            
+            
+        }
+        
+        
+        
+        
+    </script>
+        
+</body>
+</html>
